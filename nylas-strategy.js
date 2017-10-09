@@ -75,7 +75,7 @@ OAuth2.prototype.getOAuthAccessToken = function(code, params, callback) {
 
 * Applications must provide a `verify` callback which accepts an `email`,
 * `accessToken`, and `nylas` object, containing addiditional info.
-* callback will then call the `done` callback supplying a `user`, which is 
+* callback will then call the `done` callback supplying a `user`, which is
 * set to `false` if the credentials are invalid. `err` would be set if an exception occured.
 *
 *
@@ -156,24 +156,26 @@ Strategy.prototype.authenticate = function(req, options) {
 		if (req.session.nylasData) {
 			self.pass(req.session.nylasData.email, req.session.nylasData.info );
 		} else {
-			this._oauth2.getOAuthAccessToken(req.session.nylasCode, params, 
+			this._oauth2.getOAuthAccessToken(req.session.nylasCode, params,
 				function(err, email, accessToken, params) {
 					console.log(email);
 					console.log(accessToken);
 					if (err) {return self.error(new InternalOAuthError('failed to obtain access token', err)); }
-					
+
 					//Additional nylas boject returned
 					var nylas = {};
 					nylas.provider = params.provider || null;
 					nylas.account_id = params.account_id || null;
 					nylas.token_type = params.token_type || null;
 					nylas.scope = params.scope || null;
+					nylas.email = email || null;
+
 					req.session.nylasData = {
 						email: email,
 						accessToken: accessToken
 					}
 
-					self._verify(email, accessToken, nylas, verified);
+					self._verify(req, accessToken, nylas, verified);
 				}
 			);
 		}
@@ -189,16 +191,16 @@ Strategy.prototype.authenticate = function(req, options) {
 	}
 };
 
-/* Authorize URL = "/oauth/authorize?client_id=" + 
-	this.clientID + 
-	"&trial=" + options.trial + 
-	"&response_type=code&scope=email&login_hint=" + 
-	options.loginHint + 
+/* Authorize URL = "/oauth/authorize?client_id=" +
+	this.clientID +
+	"&trial=" + options.trial +
+	"&response_type=code&scope=email&login_hint=" +
+	options.loginHint +
 	"&redirect_uri=" + options.redirectURI;
 */
 
 
-/* 
+/*
 * Override OAuth authorizeParams method to allow passing additional parms
 * per "pre-fill" Nylas feature
 * Return extra parameters to be included in the authorization request.

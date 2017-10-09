@@ -21,14 +21,14 @@ In order to identify your application to Nylas, provide a clientID and clientSec
 You can obtain your clientID and clientSecret by [Creating an Application](https://nylas.com/developers) at Nylas's developers site.
 
 ```js
-	
+
 
 passport.use(new NylasStrategy({
 	clientID: process.env.CLIENT_ID,
 	clientSecret: process.env.CLIENT_SECRET,
 	callbackURL: process.env.callbackURI
 	},
-	function(email, accessToken, profile, done) {
+	function(req, accessToken, profile, done) {
 		User.findOne({nylasId: profile.id}, function(err, user) {
 			return done(err, user)
 			});
@@ -45,7 +45,7 @@ Use `passport.authenticate()`, specifying the strategy to authenticate requests.
 E.g
 
 ```js
-	
+
 app.get('/auth/nylas', passport.authenticate('nylas'));
 
 app.get('/auth/nylas/cb/', function(req, res, next) {
