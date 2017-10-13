@@ -146,16 +146,16 @@ Strategy.prototype.authenticate = function(req, options) {
 			if (!user) {return self.fail(info); }
 
 			info = info || {};
-			req.session.nylasData.info = info;
+			// req.session.nylasData.info = info;
 			self.success(user, info);
 		}
 
 		var params = this.tokenParams(options);
 		params.grant_type = 'authorization_code';
 		//params.redirect_uri = this._callbackURL;
-		if (req.session.nylasData) {
-			self.pass(req.session.nylasData.email, req.session.nylasData.info );
-		} else {
+		// if (req.session.nylasData) {
+		// 	self.pass(req.session.nylasData.email, req.session.nylasData.info );
+		// } else {
 			this._oauth2.getOAuthAccessToken(req.session.nylasCode, params,
 				function(err, email, accessToken, params) {
 					console.log(email);
@@ -170,15 +170,15 @@ Strategy.prototype.authenticate = function(req, options) {
 					nylas.scope = params.scope || null;
 					nylas.email = email || null;
 
-					req.session.nylasData = {
-						email: email,
-						accessToken: accessToken
-					}
+					// req.session.nylasData = {
+					// 	email: email,
+					// 	accessToken: accessToken
+					// }
 
 					self._verify(req, accessToken, nylas, verified);
 				}
 			);
-		}
+		// }
 	} else {
 		var params = this.authorizationParams(options);
 			params.response_type = 'code';
