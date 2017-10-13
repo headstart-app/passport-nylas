@@ -184,7 +184,9 @@ Strategy.prototype.authenticate = function(req, options) {
 			params.response_type = 'code';
 			params.redirect_uri = this._callbackURL;
 			params.scope = 'email' || this._scope;
+			var login_hint = req.query.login_hint;
 			var state = options.state || req.query.state;
+			if (login_hint) {params.login_hint = login_hint; }
 			if (state) {params.state = state; }
 		var location = this._oauth2.getAuthorizeUrl(params);
 		this.redirect(location);
