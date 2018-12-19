@@ -1,7 +1,7 @@
 {
-  "name": "passport-nylas",
+  "name": "@headstart/passport-nylas",
   "version": "2.0.0",
-  "description": "Nylas authentication strategy for Passport using the OAuth 2.0 API.",
+  "description": "Fork of the Nylas authentication strategy for Passport using the OAuth 2.0 API.",
   "main": "./nylas-strategy.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,5 +28,8 @@
     "querystring": "^0.2.0",
     "request": "^2.72.0",
     "util": "^0.10.3"
+  },
+  "publishConfig": {
+    "tag": "next"
   }
 }
