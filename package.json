@@ -28,5 +28,8 @@
     "querystring": "^0.2.0",
     "request": "^2.72.0",
     "util": "^0.10.3"
+  },
+  "publishConfig": {
+    "tag": "next"
   }
 }
