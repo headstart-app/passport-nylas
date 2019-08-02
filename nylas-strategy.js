@@ -183,7 +183,8 @@ Strategy.prototype.authenticate = function(req, options) {
 		var params = this.authorizationParams(options);
 			params.response_type = 'code';
 			params.redirect_uri = this._callbackURL;
-			params.scope = 'email' || this._scope;
+			// https://docs.nylas.com/docs/authentication-scopes
+			params.scope = this._scope || 'email';
 			var login_hint = req.query.login_hint;
 			var state = options.state || req.query.state;
 			if (login_hint) {params.login_hint = login_hint; }
