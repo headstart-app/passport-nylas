@@ -158,8 +158,6 @@ Strategy.prototype.authenticate = function(req, options) {
 		// } else {
 			this._oauth2.getOAuthAccessToken(req.session.nylasCode, params,
 				function(err, email, accessToken, params) {
-					console.log(email);
-					console.log(accessToken);
 					if (err) {return self.error(new InternalOAuthError('failed to obtain access token', err)); }
 
 					//Additional nylas boject returned
