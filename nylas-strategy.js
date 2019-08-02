@@ -96,7 +96,7 @@ function Strategy(options, verify) {
 	options.tokenURL = options.tokenURL || 'https://api.nylas.com/oauth/token';
 	options.clientID = options.clientID;
 	options.clientSecret = options.clientSecret;
-	options.scope = options.scope;
+	options.scopes = options.scopes;
 	*/
 
 	if (!verify) {throw new TypeError('OAuth2Strategy requires a verify callback'); }
@@ -107,7 +107,7 @@ function Strategy(options, verify) {
 	//this._options = options
 	this._verify = verify;
 	this._oauth2 = new OAuth2(options.clientID, options.clientSecret, options.authorizationURL, options.tokenURL, options.customHeaders);
-	this._scope = options.scope;
+	this._scopes = options.scopes;
 	this._callbackURL = options.callbackURL;
 
 
@@ -167,7 +167,7 @@ Strategy.prototype.authenticate = function(req, options) {
 					nylas.provider = params.provider || null;
 					nylas.account_id = params.account_id || null;
 					nylas.token_type = params.token_type || null;
-					nylas.scope = params.scope || null;
+					nylas.scopes = params.scopes || null;
 					nylas.email = email || null;
 
 					// req.session.nylasData = {
@@ -184,7 +184,7 @@ Strategy.prototype.authenticate = function(req, options) {
 			params.response_type = 'code';
 			params.redirect_uri = this._callbackURL;
 			// https://docs.nylas.com/docs/authentication-scopes
-			params.scope = this._scope || 'email';
+			params.scopes = this._scopes || 'email.read_only';
 			var login_hint = req.query.login_hint;
 			var state = options.state || req.query.state;
 			if (login_hint) {params.login_hint = login_hint; }
@@ -197,7 +197,7 @@ Strategy.prototype.authenticate = function(req, options) {
 /* Authorize URL = "/oauth/authorize?client_id=" +
 	this.clientID +
 	"&trial=" + options.trial +
-	"&response_type=code&scope=email&login_hint=" +
+	"&response_type=code&scopes=email&login_hint=" +
 	options.loginHint +
 	"&redirect_uri=" + options.redirectURI;
 */
