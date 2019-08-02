@@ -1,6 +1,6 @@
 {
   "name": "@headstart/passport-nylas",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Fork of the Nylas authentication strategy for Passport using the OAuth 2.0 API.",
   "main": "./nylas-strategy.js",
   "scripts": {
