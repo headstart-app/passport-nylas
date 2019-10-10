@@ -134,49 +134,34 @@ Strategy.prototype.authenticate = function(req, options) {
 		}
 	}
 
-	if (!req.session) { return this.error(new Error('OAuth authentication requires session support '))}
-
 	var self = this;
 
-	req.session.nylasCode = req.query.code;
-	if (req.session && req.session.nylasCode) {
-
+	if (req.query.code) {
 		function verified(err, user, info) {
 			if (err) {return self.error(err); }
 			if (!user) {return self.fail(info); }
 
 			info = info || {};
-			// req.session.nylasData.info = info;
 			self.success(user, info);
 		}
 
 		var params = this.tokenParams(options);
 		params.grant_type = 'authorization_code';
-		//params.redirect_uri = this._callbackURL;
-		// if (req.session.nylasData) {
-		// 	self.pass(req.session.nylasData.email, req.session.nylasData.info );
-		// } else {
-			this._oauth2.getOAuthAccessToken(req.session.nylasCode, params,
-				function(err, email, accessToken, params) {
-					if (err) {return self.error(new InternalOAuthError('failed to obtain access token', err)); }
+		this._oauth2.getOAuthAccessToken(req.query.code, params,
+			function(err, email, accessToken, params) {
+				if (err) {return self.error(new InternalOAuthError('failed to obtain access token', err)); }
 
-					//Additional nylas boject returned
-					var nylas = {};
-					nylas.provider = params.provider || null;
-					nylas.account_id = params.account_id || null;
-					nylas.token_type = params.token_type || null;
-					nylas.scopes = params.scopes || null;
-					nylas.email = email || null;
+				//Additional nylas boject returned
+				var nylas = {};
+				nylas.provider = params.provider || null;
+				nylas.account_id = params.account_id || null;
+				nylas.token_type = params.token_type || null;
+				nylas.scopes = params.scopes || null;
+				nylas.email = email || null;
 
-					// req.session.nylasData = {
-					// 	email: email,
-					// 	accessToken: accessToken
-					// }
-
-					self._verify(req, accessToken, nylas, verified);
-				}
-			);
-		// }
+				self._verify(req, accessToken, nylas, verified);
+			}
+		);
 	} else {
 		var params = this.authorizationParams(options);
 			params.response_type = 'code';
