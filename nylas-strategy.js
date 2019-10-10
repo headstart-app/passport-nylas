@@ -169,7 +169,8 @@ Strategy.prototype.authenticate = function(req, options = {}) {
       redirect_uri: this._callbackURL,
       loginHint: req.query.login_hint,
       scopes: this._scopes || 'email.read_only',
-      state: options.state || req.query.state,
+			state: req.query.state || options.state,
+			trial: options.trial,
     });
 
 		this.redirect(location);
