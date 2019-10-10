@@ -18,21 +18,20 @@ function OAuth2(clientID, clientSecret, authorizationURL, tokenURL, customHeader
 }
 
 // -- https://api.nylas.com/oauth/authorize
-OAuth2.prototype.getAuthorizeUrl = function(params) {
-	var params = params || {};
+OAuth2.prototype.getAuthorizeUrl = function({ loginHint, trial, ...rest }) {
+  const params = rest;
+
 	if (!(this.clientID && this.clientSecret)) {
 		throw new Error("getAuthorizeUrl() cannot be called until you provide a client_id and client_secret");
 	}
-	if (params.redirect_uri == null) {
+	if (!params.redirect_uri) {
 		throw new Error("getAuthorizeUrl() requires a redirect_uri");
-	}
-	if (params.loginHint == null) {
-		params.loginHint = '';
-	}
-	if (params.trial == null) {
-		params.trial = false;
-	}
-	params.client_id = this.clientID;
+  }
+
+  params.loginHint = loginHint || '';
+  params.trial =  trial || false;
+  params.client_id = this.clientID;
+
 	return this.authorizationURL + "?" + querystring.stringify(params);
 }
 
@@ -40,13 +39,13 @@ OAuth2.prototype.setAccessTokenName = function(name) {
 	this._accessTokenName = name;
 }
 
-OAuth2.prototype.getOAuthAccessToken = function(code, params, callback) {
-	var params = params || {};
-	params.client_id = this.clientID;
-	params.client_secret = this.clientSecret;
-	params.code = code;
-
-	//var post_data = querystring.stringify(params);
+OAuth2.prototype.getOAuthAccessToken = function(code, grantType, callback) {
+  const qs = {
+    client_id: this.clientID,
+	  client_secret: this.clientSecret,
+    grant_type: grantType,
+    code,
+  }
 
 	var _oauth = this;
 
@@ -54,7 +53,7 @@ OAuth2.prototype.getOAuthAccessToken = function(code, params, callback) {
 		method	: 'POST',
 		json: true,
 		url		: _oauth.tokenURL,
-		qs		: params
+		qs
 	}, function(error, response, body) {
 		if (error) { return callback(error, null) }
 		if (response.statusCode === 403) {return callback(403, null) }
@@ -123,9 +122,7 @@ util.inherits(Strategy, OAuth2Strategy);
 * @api protected
 */
 
-Strategy.prototype.authenticate = function(req, options) {
-	options = options || {};
-
+Strategy.prototype.authenticate = function(req, options = {}) {
 	if (req.query && req.query.error) {
 		if (req.query.error == 'access_denied') {
 			return this.fail({ message: req.query.error_description});
@@ -138,41 +135,43 @@ Strategy.prototype.authenticate = function(req, options) {
 
 	if (req.query.code) {
 		function verified(err, user, info) {
-			if (err) {return self.error(err); }
-			if (!user) {return self.fail(info); }
+			if (err) {
+        return self.error(err);
+      }
+
+			if (!user) {
+        return self.fail(info);
+      }
 
 			info = info || {};
 			self.success(user, info);
 		}
 
-		var params = this.tokenParams(options);
-		params.grant_type = 'authorization_code';
-		this._oauth2.getOAuthAccessToken(req.query.code, params,
-			function(err, email, accessToken, params) {
-				if (err) {return self.error(new InternalOAuthError('failed to obtain access token', err)); }
+		this._oauth2.getOAuthAccessToken(req.query.code, 'authorization_code', function(err, email, accessToken, body) {
+				if (err) {
+          return self.error(new InternalOAuthError('failed to obtain access token', err));
+        }
 
 				//Additional nylas boject returned
-				var nylas = {};
-				nylas.provider = params.provider || null;
-				nylas.account_id = params.account_id || null;
-				nylas.token_type = params.token_type || null;
-				nylas.scopes = params.scopes || null;
+				const nylas = {};
+				nylas.provider = body.provider || null;
+				nylas.account_id = body.account_id || null;
+				nylas.token_type = body.token_type || null;
+				nylas.scopes = body.scopes || null;
 				nylas.email = email || null;
 
 				self._verify(req, accessToken, nylas, verified);
 			}
 		);
 	} else {
-		var params = this.authorizationParams(options);
-			params.response_type = 'code';
-			params.redirect_uri = this._callbackURL;
-			// https://docs.nylas.com/docs/authentication-scopes
-			params.scopes = this._scopes || 'email.read_only';
-			var login_hint = req.query.login_hint;
-			var state = options.state || req.query.state;
-			if (login_hint) {params.login_hint = login_hint; }
-			if (state) {params.state = state; }
-		var location = this._oauth2.getAuthorizeUrl(params);
+		const location = this._oauth2.getAuthorizeUrl({
+      response_type: 'code',
+      redirect_uri: this._callbackURL,
+      loginHint: req.query.login_hint,
+      scopes: this._scopes || 'email.read_only',
+      state: options.state || req.query.state,
+    });
+
 		this.redirect(location);
 	}
 };
